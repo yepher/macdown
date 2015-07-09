@@ -1091,6 +1091,31 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     }];
 }
 
+- (IBAction)exportSinglePagePdf:(id)sender
+{
+    NSSavePanel *panel = [NSSavePanel savePanel];
+    panel.allowedFileTypes = @[@"pdf"];
+    if (self.presumedFileName)
+        panel.nameFieldStringValue = self.presumedFileName;
+    
+    NSWindow *w = nil;
+    NSArray *windowControllers = self.windowControllers;
+    if (windowControllers.count > 0)
+        w = [windowControllers[0] window];
+    
+    [panel beginSheetModalForWindow:w completionHandler:^(NSInteger result) {
+        if (result != NSFileHandlingPanelOKButton)
+            return;
+        
+        NSDictionary *settings = @{
+                                   NSPrintJobDisposition: NSPrintSaveJob,
+                                   NSPrintJobSavingURL: panel.URL,
+                                   };
+        [self printDocumentWithSettings:settings showPrintPanel:NO delegate:nil
+                       didPrintSelector:NULL contextInfo:NULL];
+    }];
+}
+
 - (IBAction)convertToH1:(id)sender
 {
     [self.editor makeHeaderForSelectedLinesWithLevel:1];
