@@ -1104,17 +1104,25 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         w = [windowControllers[0] window];
     
     [panel beginSheetModalForWindow:w completionHandler:^(NSInteger result) {
-        if (result != NSFileHandlingPanelOKButton)
+        if (result != NSFileHandlingPanelOKButton) {
             return;
+        }
         
-        NSDictionary *settings = @{
-                                   NSPrintJobDisposition: NSPrintSaveJob,
-                                   NSPrintJobSavingURL: panel.URL,
-                                   };
-        [self printDocumentWithSettings:settings showPrintPanel:NO delegate:nil
-                       didPrintSelector:NULL contextInfo:NULL];
+        WebFrameView *view = self.preview.mainFrame.frameView.documentView;
+        NSData* exportedData = [view dataWithPDFInsideRect:view.frame];
+        
+        NSURL* fileURL = panel.URL;
+        
+        if ([fileURL.pathExtension isEqualToString:@""]) {
+            fileURL = [fileURL URLByAppendingPathExtension:@"pdf"];
+        }
+        
+        [exportedData writeToURL:fileURL atomically:YES];
+
+        
     }];
 }
+
 
 - (IBAction)convertToH1:(id)sender
 {
